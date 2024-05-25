@@ -5,7 +5,7 @@ faker = Faker()
 
 
 def generate_customer_data(num_rows):
-    with open('data/customer_details.csv', 'w', newline='') as csvfile:
+    with open('../data/customer_details.csv', 'w', newline='') as csvfile:
         fieldnames = ['first_name', 'last_name', 'address', 'email', 'username', 'password']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
@@ -27,7 +27,7 @@ def generate_customer_data(num_rows):
 
 
 def generate_credit_card_data(num_rows):
-    with open('data/credit_card_details.csv', 'w', newline='') as csvfile:
+    with open('../data/credit_card_details.csv', 'w', newline='') as csvfile:
         fieldnames = ['card_number', 'cc_expire_date', 'cvv', 'provider']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
@@ -47,7 +47,7 @@ def generate_credit_card_data(num_rows):
 
 
 def generate_company_data(num_rows):
-    with open('data/company_details.csv', 'w', newline='') as csvfile:
+    with open('../data/company_details.csv', 'w', newline='') as csvfile:
         fieldnames = ['company_name', 'company_address', 'company_phone']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
@@ -66,7 +66,7 @@ def generate_company_data(num_rows):
 
 
 def generate_shop_activity_data(num_rows):
-    with open('data/shop_activity.csv', 'w', newline='') as csvfile:
+    with open('../data/shop_activity.csv', 'w', newline='') as csvfile:
         fieldnames = ['timestamp', 'user_id', 'event_type', 'product_id', 'price']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
@@ -81,8 +81,3 @@ def generate_shop_activity_data(num_rows):
             })
 
     print(f"Generated {num_rows} rows of data and saved to 'shop_activity.csv'.")
-
-
-if __name__ == '__main__':
-    num_rows = 100000
-    generate_shop_activity_data(num_rows)
