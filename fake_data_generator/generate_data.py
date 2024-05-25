@@ -1,7 +1,6 @@
 import csv
 from faker import Faker
 
-
 faker = Faker()
 
 
@@ -66,6 +65,24 @@ def generate_company_data(num_rows):
     print(f"Generated {num_rows} rows of data and saved to 'company_details.csv'.")
 
 
+def generate_shop_activity_data(num_rows):
+    with open('data/shop_activity.csv', 'w', newline='') as csvfile:
+        fieldnames = ['timestamp', 'user_id', 'event_type', 'product_id', 'price']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+
+        for _ in range(num_rows):
+            writer.writerow({
+                'timestamp': faker.date_time_this_year().isoformat(),
+                'user_id': faker.uuid4(),
+                'event_type': faker.random_element(['purchase', 'view', 'add_to_cart']),
+                'product_id': faker.uuid4(),
+                'price': faker.pricetag()
+            })
+
+    print(f"Generated {num_rows} rows of data and saved to 'shop_activity.csv'.")
+
+
 if __name__ == '__main__':
     num_rows = 100000
-    generate_company_data(num_rows)
+    generate_shop_activity_data(num_rows)
