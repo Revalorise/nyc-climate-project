@@ -19,7 +19,7 @@ for msg in consumer:
            msg.value['product_id'],
            msg.value['price']]
 
-    with open('../../data/shop_activity.csv', 'a', newline='') as csvfile:
+    with open('../../stream_data/shop_activity.csv', 'a', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(row)
         print('Appended row to shop_activity.csv')
