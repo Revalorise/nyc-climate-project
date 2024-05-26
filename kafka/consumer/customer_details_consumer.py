@@ -20,7 +20,7 @@ for msg in consumer:
            msg.value['username'],
            msg.value['password']]
 
-    with open('../data/customer_details.csv', 'a', newline='') as csvfile:
+    with open('../../data/customer_details.csv', 'a', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(row)
         print('Appended row to customer_details.csv')

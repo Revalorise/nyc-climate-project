@@ -18,7 +18,7 @@ for msg in consumer:
            msg.value['cvv'],
            msg.value['provider']]
 
-    with open('../data/credit_card_details.csv', 'a', newline='') as csvfile:
+    with open('../../data/credit_card_details.csv', 'a', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(row)
         print('Appended row to credit_card_details.csv')

@@ -5,7 +5,7 @@ faker = Faker()
 
 
 def generate_customer_data(num_rows):
-    with open('../data/customer_details.csv', 'w', newline='') as csvfile:
+    with open('D:/DE Projects/nyc_climate_projection/data/customer_details.csv', 'w', newline='') as csvfile:
         fieldnames = ['first_name', 'last_name', 'address', 'email', 'username', 'password']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
@@ -26,8 +26,21 @@ def generate_customer_data(num_rows):
     print(f"Generated {num_rows} rows of data and saved to 'customer_details.csv'.")
 
 
+def stream_customer_data():
+    data = {
+        'first_name': faker.first_name(),
+        'last_name': faker.last_name(),
+        'address': faker.address(),
+        'email': faker.email(),
+        'username': faker.user_name(),
+        'password': faker.password()
+    }
+
+    return data
+
+
 def generate_credit_card_data(num_rows):
-    with open('../data/credit_card_details.csv', 'w', newline='') as csvfile:
+    with open('D:/DE Projects/nyc_climate_projection/data/credit_card_details.csv', 'w', newline='') as csvfile:
         fieldnames = ['card_number', 'cc_expire_date', 'cvv', 'provider']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
@@ -46,8 +59,19 @@ def generate_credit_card_data(num_rows):
     print(f"Generated {num_rows} rows of data and saved to 'credit_card_details.csv'.")
 
 
+def stream_credit_card_data():
+    data = {
+        'card_number': faker.credit_card_number(),
+        'cc_expire_date': faker.credit_card_expire(),
+        'cvv': faker.credit_card_security_code(),
+        'provider': faker.credit_card_provider()
+    }
+
+    return data
+
+
 def generate_company_data(num_rows):
-    with open('../data/company_details.csv', 'w', newline='') as csvfile:
+    with open('D:/DE Projects/nyc_climate_projection/data/company_details.csv', 'w', newline='') as csvfile:
         fieldnames = ['company_name', 'company_address', 'company_phone']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
@@ -65,8 +89,18 @@ def generate_company_data(num_rows):
     print(f"Generated {num_rows} rows of data and saved to 'company_details.csv'.")
 
 
+def stream_company_data():
+    data = {
+        'company_name': faker.company(),
+        'company_address': faker.address(),
+        'company_phone': faker.phone_number()
+    }
+
+    return data
+
+
 def generate_shop_activity_data(num_rows):
-    with open('../data/shop_activity.csv', 'w', newline='') as csvfile:
+    with open('D:/DE Projects/nyc_climate_projection/data/shop_activity.csv', 'w', newline='') as csvfile:
         fieldnames = ['timestamp', 'user_id', 'event_type', 'product_id', 'price']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
@@ -81,3 +115,16 @@ def generate_shop_activity_data(num_rows):
             })
 
     print(f"Generated {num_rows} rows of data and saved to 'shop_activity.csv'.")
+
+
+def stream_shop_activity_data():
+    data = {
+        'timestamp': faker.date_time_this_year().isoformat(),
+        'user_id': faker.uuid4(),
+        'event_type': faker.random_element(['purchase', 'view', 'add_to_cart']),
+        'product_id': faker.uuid4(),
+        'price': faker.pricetag()
+    }
+
+    return data
+

@@ -17,7 +17,7 @@ for msg in consumer:
            msg.value['company_address'],
            msg.value['company_phone']]
 
-    with open('../data/company_details.csv', 'a', newline='') as csvfile:
+    with open('../../data/company_details.csv', 'a', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(row)
         print('Appended row to company_details.csv')
