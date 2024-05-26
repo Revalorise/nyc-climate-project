@@ -11,7 +11,7 @@ header = ['company_name', 'company_address', 'company_phone']
 
 for msg in consumer:
     print('--------------------------------')
-    print('Received message from topic: shopper, writing to customer_data file...')
+    print('Received message from topic: company_details, writing to customer_data file...')
 
     row = [msg.value['company_name'],
            msg.value['company_address'],

@@ -3,25 +3,24 @@ import csv
 from kafka import KafkaConsumer
 
 
-consumer = KafkaConsumer('company_details',
+consumer = KafkaConsumer('credit_card_details',
                          value_deserializer=lambda x: json.loads(x.decode('utf-8')))
 
-header = ['company_name', 'company_address', 'company_phone']
+header = ['card_number', 'cc_expire_date', 'cvv', 'provider']
 
 
 for msg in consumer:
     print('--------------------------------')
-    print('Received message from topic: shopper, writing to customer_data file...')
+    print('Received message from topic: credit_card_details, writing to customer_data file...')
 
-    row = [msg.value['company_name'],
-           msg.value['user_id'],
-           msg.value['event_type'],
-           msg.value['product_id'],
-           msg.value['price']]
+    row = [msg.value['card_number'],
+           msg.value['cc_expire_date'],
+           msg.value['cvv'],
+           msg.value['provider']]
 
-    with open('produced_data/shop_activity.csv', 'a', newline='') as csvfile:
+    with open('../data/credit_card_details.csv', 'a', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(row)
-        print('Appended row to shop_activity.csv')
+        print('Appended row to credit_card_details.csv')
 
     print('--------------------------------')
