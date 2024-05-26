@@ -128,3 +128,9 @@ def stream_shop_activity_data():
 
     return data
 
+
+if __name__ == '__main__':
+    generate_customer_data(1)
+    generate_credit_card_data(1)
+    generate_company_data(1)
+    generate_shop_activity_data(1)
