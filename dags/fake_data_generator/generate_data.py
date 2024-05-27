@@ -5,8 +5,8 @@ faker = Faker()
 
 
 def generate_customer_data(num_rows):
-    with open('../data/customer_data.csv', 'w', newline='') as csvfile:
-        fieldnames = ['first_name', 'last_name', 'address', 'email', 'username', 'password']
+    with open('/opt/airflow/data/customer_data.csv', 'w', newline='') as csvfile:
+        fieldnames = ['first_name', 'last_name', 'address', 'email']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
         # write the header row
@@ -17,18 +17,16 @@ def generate_customer_data(num_rows):
             writer.writerow({
                 'first_name': faker.first_name(),
                 'last_name': faker.last_name(),
-                'address': faker.address(),
-                'email': faker.email(),
-                'username': faker.user_name(),
-                'password': faker.password()
+                'address': faker.address().replace('\n', ' '),
+                'email': faker.email()
             })
 
     print(f"Generated {num_rows} rows of stream_data and saved to 'customer_data.csv'.")
 
 
 def generate_product_data(num_rows):
-    with open('../data/product_data.csv', 'w', newline='') as csvfile:
-        fieldnames = ['product_id', 'product_name', 'description', 'price', 'category']
+    with open('/opt/airflow/data/product_data.csv', 'w', newline='') as csvfile:
+        fieldnames = ['product_id', 'product_name', 'price', 'category']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
         writer.writeheader()
@@ -36,7 +34,6 @@ def generate_product_data(num_rows):
             writer.writerow({
                 'product_id': faker.uuid4(),
                 'product_name': faker.catch_phrase(),
-                'description': faker.text(max_nb_chars=100),
                 'price': faker.pydecimal(left_digits=3, right_digits=2, positive=True),
                 'category': faker.word()
             })
@@ -45,7 +42,7 @@ def generate_product_data(num_rows):
 
 
 def generate_order_data(num_rows):
-    with open('../data/order_data.csv', 'w', newline='') as csvfile:
+    with open('/opt/airflow/data/order_data.csv', 'w', newline='') as csvfile:
         fieldnames = ['order_id', 'customer_id', 'product_id', 'quantity', 'order_date', 'total_amount']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
@@ -61,9 +58,3 @@ def generate_order_data(num_rows):
             })
 
     print(f"Generated {num_rows} rows of order data and saved to 'order_data.csv'.")
-
-
-if __name__ == '__main__':
-    generate_customer_data(1000)
-    generate_product_data(1000)
-    generate_order_data(1000)
