@@ -1,0 +1,2 @@
+airflow-provider-great-expectations==0.2.8
+apache-airflow-providers-amazon==8.17.0
