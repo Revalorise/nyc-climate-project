@@ -1,68 +1,46 @@
 import datetime
+import os
 
-from airflow.decorators import dag, task, task_group
-from airflow.operators.python import PythonOperator
+from dotenv import load_dotenv
+from airflow.decorators import dag, task
 from airflow.providers.amazon.aws.transfers.local_to_s3 import LocalFilesystemToS3Operator
-from fake_data_generator.generate_data import (generate_customer_data,
-                                               generate_product_data,
-                                               generate_order_data)
 
-
+load_dotenv()
 MY_GX_DATA_CONTEXT = "include/great_expectations"
+
+RAW_BUCKET_NAME = os.getenv('RAW_BUCKET_NAME')
+TRANSFROMED_BUCKET_NAME = os.getenv('TRANSFROMED_BUCKET_NAME')
+SERVING_BUCKET_NAME = os.getenv('SERVING_BUCKET_NAME')
+
+KAGGLE_USERNAME = os.getenv('KAGGLE_USERNAME')
+KAGGLE_KEY = os.getenv('KAGGLE_KEY')
 
 
 @dag(
-    start_date=datetime.datetime(2024, 8, 1),
+    start_date=datetime.datetime(2024, 5, 1),
     schedule="@daily",
     default_args={"retries": 1}
 )
 def e_commerce():
-    @task_group(group_id='generate_data')
-    def generate_data():
-        customer_data = PythonOperator(
-            task_id="generate_customer_data",
-            python_callable=generate_customer_data,
-            op_kwargs={"num_rows": 1000}
-        )
-        product_data = PythonOperator(
-            task_id="generate_product_data",
-            python_callable=generate_product_data,
-            op_kwargs={"num_rows": 1000}
-        )
-        order_data = PythonOperator(
-            task_id="generate_order_data",
-            python_callable=generate_order_data,
-            op_kwargs={"num_rows": 1000}
-        )
+    @task.bash
+    def download_ecommerce_data():
+        return f"""
+            export KAGGLE_USERNAME={KAGGLE_USERNAME} && \
+            export KAGGLE_KEY={KAGGLE_KEY} && \
+            kaggle datasets download -d mkechinov/ecommerce-purchase-history-from-electronics-store -p $AIRFLOW_HOME/data && \
+            kaggle datasets metadata -d mkechinov/ecommerce-purchase-history-from-electronics-store -p $AIRFLOW_HOME/data/metadata
+        """
 
-    @task_group(group_id='upload_to_raw_bucket')
-    def upload_to_raw_bucket():
-        upload_customer_data = LocalFilesystemToS3Operator(
-            task_id="upload_customer_data",
-            filename="/opt/airflow/data/customer_data.csv",
-            dest_key="customer_data.csv",
-            dest_bucket="bon-raw-data-17835146",
-            aws_conn_id="aws_default"
-        )
-        upload_product_data = LocalFilesystemToS3Operator(
-            task_id="upload_product_data",
-            filename="/opt/airflow/data/product_data.csv",
-            dest_key="product_data.csv",
-            dest_bucket="bon-raw-data-17835146",
-            aws_conn_id="aws_default"
-        )
-        upload_order_data = LocalFilesystemToS3Operator(
-            task_id="upload_order_data",
-            filename="/opt/airflow/data/order_data.csv",
-            dest_key="order_data.csv",
-            dest_bucket="bon-raw-data-17835146",
-            aws_conn_id="aws_default"
-        )
+    upload_to_s3 = LocalFilesystemToS3Operator(
+        task_id="upload_to_s3",
+        filename="/opt/airflow/data/ecommerce-purchase-history-from-electronics-store.zip",
+        dest_key="ecommerce-purchase-history-from-electronics-store.zip",
+        dest_bucket='bon-raw-data-17835146',
+        aws_conn_id="aws_default",
+        replace=True
+    )
 
-
-
-
-    generate_data() >> upload_to_raw_bucket()
+    download_ecommerce_data() >> upload_to_s3
 
 
 dag = e_commerce()
