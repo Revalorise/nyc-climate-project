@@ -78,7 +78,13 @@ def e_commerce():
             sql="/opt/airflow/dags/sql/create_table.sql"
         )
 
-        return create_table
+        insert_data = PostgresOperator(
+            task_id="insert_data",
+            postgres_conn_id="postgres_localhost",
+            sql="/opt/airflow/dags/sql/insert_data.sql"
+        )
+
+        return create_table >> insert_data
 
     download_data = download_ecommerce_data()
     first_processing = first_data_processing()
