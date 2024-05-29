@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 from airflow.decorators import dag, task, task_group
 from airflow.providers.amazon.aws.transfers.local_to_s3 import LocalFilesystemToS3Operator
+from airflow.providers.postgres.operators.postgres import PostgresOperator
 
 load_dotenv()
 MY_GX_DATA_CONTEXT = "include/great_expectations"
@@ -68,11 +69,22 @@ def e_commerce():
 
         return unzip_data >> remove_zip_file >> rename_file
 
+    @task_group(group_id="postgres_operations")
+    def upload_to_postgres():
+
+        create_table = PostgresOperator(
+            task_id="create_table",
+            postgres_conn_id="postgres_localhost",
+            sql="/opt/airflow/dags/sql/create_table.sql"
+        )
+
+        return create_table
 
     download_data = download_ecommerce_data()
     first_processing = first_data_processing()
+    postgres_operations = upload_to_postgres()
 
-    download_data >> upload_to_s3 >> first_processing
+    download_data >> upload_to_s3 >> first_processing >> postgres_operations
 
 
 dag = e_commerce()
