@@ -44,22 +44,22 @@ def e_commerce():
                               csv_path: str,
                               new_csv_name: str):
 
-        @task(task_id="unzip_data_task")
-        def unzip_data_task(zip_source: str, csv_destination: str) -> None:
+        @task(task_id="unzip_data")
+        def unzip_data(zip_source: str, csv_destination: str) -> None:
             return DataProcessor.unzip_data(zip_source, csv_destination)
 
-        @task(task_id="remove_zip_file_task")
-        def remove_zip_file_task(zip_source: str) -> None:
+        @task(task_id="remove_zip_file")
+        def remove_zip_file(zip_source: str) -> None:
             return DataProcessor.remove_file(zip_source)
 
-        @task.bash(task_id="rename_file_task")
-        def rename_file_task(csv_path: str, new_csv_name: str) -> None:
+        @task.bash(task_id="rename_file")
+        def rename_file(csv_path: str, new_csv_name: str) -> None:
             return DataProcessor.rename_file(csv_path, new_csv_name)
 
-        unzip_data = unzip_data_task(zip_source=zip_source,
+        unzip_data = unzip_data(zip_source=zip_source,
                                      csv_destination=csv_destination)
-        remove_zip_file = remove_zip_file_task(zip_source=zip_source)
-        rename_file = rename_file_task(csv_path=csv_path,
+        remove_zip_file = remove_zip_file(zip_source=zip_source)
+        rename_file = rename_file(csv_path=csv_path,
                                        new_csv_name=new_csv_name)
 
         return unzip_data >> remove_zip_file >> rename_file
@@ -67,16 +67,16 @@ def e_commerce():
     @task_group(group_id="postgres_operations")
     def postgres_operations():
 
-        @task(task_id="create_table_task")
-        def create_table_task():
+        @task(task_id="create_table")
+        def create_table():
             return PostgresOperations.create_table()
 
-        @task(task_id="load_data_task")
-        def load_data_task():
+        @task(task_id="load_data")
+        def load_data():
             return PostgresOperations.load_data()
 
-        create_table = create_table_task()
-        load_data = load_data_task()
+        create_table = create_table()
+        load_data = load_data()
 
         return create_table >> load_data
 
