@@ -21,10 +21,10 @@ class DataProcessor:
             os.remove(file_path)
 
     @staticmethod
-    def rename_file(old_name: str, new_name: str) -> None:
+    def rename_file(source: str, destination: str) -> None:
         """
         Rename a file in the file system.
         """
         import os
-        if os.path.exists(old_name):
-            os.rename(old_name, new_name)
+        if os.path.exists(source):
+            os.rename(source, destination)
