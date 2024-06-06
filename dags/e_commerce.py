@@ -1,21 +1,17 @@
 import datetime
-import zipfile
 import os
 
 from dotenv import load_dotenv
 from airflow.decorators import dag, task, task_group
 from airflow.providers.amazon.aws.transfers.local_to_s3 import LocalFilesystemToS3Operator
-from airflow.providers.postgres.operators.postgres import PostgresOperator
+
+from scripts.first_data_processing import DataProcessor
+from scripts.postgres_operations import PostgresOperations
 
 load_dotenv()
-MY_GX_DATA_CONTEXT = "include/great_expectations"
 
-KAGGLE_USERNAME = os.getenv('KAGGLE_USERNAME')
-KAGGLE_KEY = os.getenv('KAGGLE_KEY')
-
-zip_path = "/opt/airflow/data/ecommerce-purchase-history-from-electronics-store.zip"
-csv_path = "/opt/airflow/data/kz.csv"
-data_dest_path = "/opt/airflow/data/"
+kaggle_username = os.environ.get("kaggle_config", "username")
+kaggle_key = os.environ.get("kaggle_config", "kaggle_key")
 
 
 @dag(
@@ -27,8 +23,8 @@ def e_commerce():
     @task.bash
     def download_ecommerce_data():
         return f"""
-            export KAGGLE_USERNAME={KAGGLE_USERNAME} && \
-            export KAGGLE_KEY={KAGGLE_KEY} && \
+            export KAGGLE_USERNAME={kaggle_username} && \
+            export KAGGLE_KEY={kaggle_key} && \
             kaggle datasets download -d mkechinov/ecommerce-purchase-history-from-electronics-store -p $AIRFLOW_HOME/data && \
             kaggle datasets metadata -d mkechinov/ecommerce-purchase-history-from-electronics-store -p $AIRFLOW_HOME/data/metadata
         """
@@ -43,52 +39,57 @@ def e_commerce():
     )
 
     @task_group(group_id="first_data_processing")
-    def first_data_processing():
+    def first_data_processing(zip_source: str,
+                              csv_destination: str,
+                              csv_path: str,
+                              new_csv_name: str):
 
-        @task(task_id="unzip_data")
-        def unzip_data(zip_path, dest_path):
-            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                zip_ref.extractall(dest_path)
+        @task(task_id="unzip_data_task")
+        def unzip_data_task(zip_source: str, csv_destination: str) -> None:
+            return DataProcessor.unzip_data(zip_source, csv_destination)
 
-        unzip_data = unzip_data(zip_path, data_dest_path)
+        @task(task_id="remove_zip_file_task")
+        def remove_zip_file_task(zip_source: str) -> None:
+            return DataProcessor.remove_file(zip_source)
 
-        @task(task_id="remove_zip_file")
-        def remove_zip_file(zip_path):
-            os.remove(zip_path)
+        @task.bash(task_id="rename_file_task")
+        def rename_file_task(csv_path: str, new_csv_name: str) -> None:
+            return DataProcessor.rename_file(csv_path, new_csv_name)
 
-        remove_zip_file = remove_zip_file(zip_path=zip_path)
-
-        @task.bash(task_id="rename_file")
-        def rename_file(file_path, csv_file):
-            return f"mv {file_path} {csv_file}"
-
-        rename_file = rename_file(
-            file_path="/opt/airflow/data/kz.csv",
-            csv_file="/opt/airflow/data/ecommerce-electronics-purchase-history.csv"
-        )
+        unzip_data = unzip_data_task(zip_source=zip_source,
+                                     csv_destination=csv_destination)
+        remove_zip_file = remove_zip_file_task(zip_source=zip_source)
+        rename_file = rename_file_task(csv_path=csv_path,
+                                       new_csv_name=new_csv_name)
 
         return unzip_data >> remove_zip_file >> rename_file
 
     @task_group(group_id="postgres_operations")
-    def upload_to_postgres():
+    def postgres_operations():
 
-        create_table = PostgresOperator(
-            task_id="create_table",
-            postgres_conn_id="postgres_localhost",
-            sql="/opt/airflow/dags/sql/create_table.sql"
-        )
+        @task(task_id="create_table_task")
+        def create_table_task():
+            return PostgresOperations.create_table()
 
-        insert_data = PostgresOperator(
-            task_id="insert_data",
-            postgres_conn_id="postgres_localhost",
-            sql="/opt/airflow/dags/sql/insert_data.sql"
-        )
+        @task(task_id="load_data_task")
+        def load_data_task():
+            return PostgresOperations.load_data()
 
-        return create_table >> insert_data
+        create_table = create_table_task()
+        load_data = load_data_task()
+
+        return create_table >> load_data
 
     download_data = download_ecommerce_data()
-    first_processing = first_data_processing()
-    postgres_operations = upload_to_postgres()
+
+    first_processing = first_data_processing(
+        zip_source="/opt/airflow/data/ecommerce-purchase-history-from-electronics-store.zip",
+        csv_destination="/opt/airflow/data/",
+        csv_path="/opt/airflow/data/kz.csv",
+        new_csv_name="/opt/airflow/data/ecommerce-electronics-purchase-history.csv"
+    )
+
+    postgres_operations = postgres_operations()
 
     download_data >> upload_to_s3 >> first_processing >> postgres_operations
 
